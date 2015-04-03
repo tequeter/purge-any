@@ -1,0 +1,107 @@
+purge-any (1.013)
+
+  * Documented how to install the dependencies on various platforms.
+  * No code changes.
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Wed, 02 Oct 2013
+
+purge-any (1.012)
+
+  * Fixed a purge-any.exe (packaged Win32 executable) where the
+    rename_with_date action would suddenly stop the script with a 0 return
+    code.
+  * Added misc TRACE statements in the code to debug the above (use -vvvv to
+    see them).
+  * Fixed the File::Path workaround to work on recent library versions with a
+    non-numeric version string.
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Unk, xx Mar 2010
+
+purge-any (1.011)
+
+  * Documentation fixes
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Tue, 03 Mar 2010
+
+purge-any (1.010)
+
+  * Added gzip action
+  * Added rename_with_date
+  * Added mmin predicate
+  * Misc fixes, documentation and test refactoring
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Tue, 10 Feb 2010
+
+purge-any (1.009)
+
+  * Added a workaround for File::Path version < 2 (such as RHEL4)
+  * Misc fixes
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Tue, 17 Aug 2010 16:27:45 +0200
+
+purge-any (1.008)
+
+  * Renamed regexp to regex to match the documentation and GNU find
+  * Bugfix: invalid predicates should never match
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Fri, 30 Jul 2010 18:15:43 +0200
+
+purge-any (1.007)
+
+  * Made --show-config actually show the loaded configuration
+  * Added mindepth/maxdepth purge settings
+  * The default mindepth is now 1, ie. specified paths will not be considered
+    for purging, only their contents. This is what users expect.
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Fri, 30 Jul 2010 17:04:46 +0200
+
+purge-any (1.006)
+
+  * New predicate: "type"
+  * New predicate: "empty"
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Wed, 28 Jul 2010 18:01:58 +0200
+
+purge-any (1.005)
+
+  * Misc documentation fixes
+  * Encoding-related PAR packaging fixes (added missing module)
+  * Implemented a workaround for locale detection on RHEL4
+  * Removed the undocumented dependency to the "version" module
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Tue Jul 27 18:28:11 2010 +0200
+
+purge-any (1.004)
+
+  * Bugfix: files with non-ASCII characters can now be deleted (for real)
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Fri, 16 Jul 2010 16:24:16 +0200
+
+purge-any (1.003)
+
+  * Do not anchor regex anymore (1.002 already documents this new behavior)
+  * Removed the complex configuration file lookup code, just look in the
+    current directory (idem)
+  * Bugfix: files with non-ASCII characters can now be deleted
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Tue Jul 13 18:35:54 2010 +0200
+
+purge-any (1.002)
+
+  * Added POD documentation for the configuration file
+  * Added the README.txt and CHANGELOG.txt
+
+ -- Thomas Equeter <tequeter@straton-it.fr>  Tue Jul 13 15:01:48 2010 +0200
+
+purge-any (1.001)
+
+  * Added --version
+  * Now converting host names to lowercase
+
+ -- Thomas Equeter <tequeter@straton-it.fr>
+
+purge-any (1.000)
+
+  * First stable release
+
+ -- Thomas Equeter <tequeter@straton-it.fr>
