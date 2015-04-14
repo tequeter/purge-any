@@ -21,7 +21,6 @@ use DateTime::TimeZone::Europe::Rome;   # For PAR
 use DateTime::TimeZone::Asia::Shanghai; # For PAR
 use List::Util qw( max );
 use YAML::XS;
-use File::Find;
 use File::Path qw();
 use File::Temp;
 use Encode;
@@ -39,7 +38,7 @@ else
 }
 # More PAR support : datetime_now is called once at compile-time, see below
 
-our $VERSION = 1.013_004;
+our $VERSION = 1.013_005;
 my $DEFAULT_MIN_DEPTH = 1;
 my $DEFAULT_MAX_DEPTH = 1024;
 my $GZIP_CMD;
@@ -1637,7 +1636,7 @@ B<paths> are not purged unless it is explicitely set to 0.
 
 =item *
 
-perl 5.8 or higher
+perl 5.8.8 or higher
 
 =item *
 
@@ -1653,7 +1652,8 @@ C<DateTime>
 
 =item *
 
-C<IO::Compress::Gzip> version 2 or higher.
+C<IO::Compress::Gzip> version 2 or higher, or GNU gzip(1) installed as
+C</usr/bin/gzip>.
 
 =back
 
@@ -1661,13 +1661,24 @@ C<IO::Compress::Gzip> version 2 or higher.
 
 =head2 Installation on Redhat Enterprise Linux
 
-For RHEL4 and RHEL5, install the prerequisites RPM found in rhel4/ and rhel5/
-respectively:
+=head3 RHEL4
 
-  rpm -ivh rhelX/*{noarch,i386}.rpm
+Install the prerequisites RPMs found in rhel4/:
+
+  rpm -ivh rhel4/*{noarch,i386}.rpm
   OR
-  rpm -ivh rhelX/*{noarch,x86_64}.rpm
+  rpm -ivh rhel4/*{noarch,x86_64}.rpm
 
+Then use the purge-any.pl script.
+
+=head3 RHEL5 or RHEL6
+
+Install the RPMs found in rhel5/ or rhel6/ respectively:
+
+  yum localinstall rhelX/*{noarch,x86_64}.rpm
+
+Since purge-any version 1.014, these RPMs include purge-any itself (it will be
+installed in the PATH, C</usr/bin/purge-any>).
 
 =head2 Installation on MS Windows
 
@@ -1817,13 +1828,6 @@ doesn't matter on MS Windows, as such files cannot exist there).
 
 =item *
 
-The current implementation performs a first pass to read all existing files
-then a second pass to perform the purges. This is memory-hungry, inefficient
-and unnecessary. Rewriting a custom directory exploration function would solve
-it (instead of relying on File::Find).
-
-=item *
-
 The predicates definition does not allow complex logic constructs and requires
 multiplying the purge entries to express OR operators.
 
@@ -1840,12 +1844,12 @@ some versions of File::Temp.
 
 =head1 AUTHOR
 
-Thomas Equeter <tequeter@straton-it.fr>
+Thomas Equeter <tequeter@users.noreply.github.com>
 
 
 =head1 COPYRIGHT AND LICENCE
 
-Copyright (C) 2010-2011, Idgroup.
+Copyright (C) 2010-2015, Idgroup.
 
 
 =cut
