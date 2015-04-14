@@ -9,6 +9,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Getopt::Long;
 use Pod::Usage;
+use IPC::Open3;
 use Log::Log4perl qw( :easy );
 use Log::Log4perl::Appender::Screen; # For PAR
 use Log::Log4perl::Layout::SimpleLayout; # For PAR
@@ -26,7 +27,6 @@ use File::Temp;
 use Encode;
 use Encode::Byte; # For PAR
 use List::Util qw( first );
-use IO::Compress::Gzip 2.001;
 use File::stat qw();
 use File::Copy qw();
 if ( $OSNAME eq 'MSWin32' )
@@ -39,9 +39,11 @@ else
 }
 # More PAR support : datetime_now is called once at compile-time, see below
 
-our $VERSION = 1.013;
+our $VERSION = 1.013_001;
 my $DEFAULT_MIN_DEPTH = 1;
 my $DEFAULT_MAX_DEPTH = 1024;
+my $GZIP_CMD;
+BEGIN { $GZIP_CMD = '/usr/bin/gzip'; }
 
 use Memoize;
 memoize( 'get_locale_encoding' );
@@ -761,9 +763,9 @@ sub action_compress
             DEBUG "$filename is already compressed";
             return 1; # Do not proceed to deletion
         }
-        elsif ( !IO::Compress::Gzip::gzip( $encoded_filename => "$encoded_filename.gz", BinModeIn => 1 ) )
+        elsif ( my $gz_error = gzip_file( $encoded_filename ) )
         {
-            $error = $IO::Compress::Gzip::GzipError || 'unknown error';
+            $error = $gz_error;
         }
         elsif ( $metadata_ref )
         {
@@ -787,6 +789,88 @@ sub action_compress
         return action_delete( $filename, $purge_ref );
     }
 }
+
+sub gzip_file_iocompress
+{
+    my ( $file ) = @_;
+
+    if ( !IO::Compress::Gzip::gzip( $file, "$file.gz", BinModeIn => 1 ) )
+    {
+        no warnings 'once';
+        return ( $IO::Compress::Gzip::GzipError || 'unknown error' );
+    }
+    else
+    {
+        return;
+    }
+}
+
+sub gzip_file_cmd
+{
+    my ( $file ) = @_;
+
+    open my $infd,   '<', '/dev/null' or LOGDIE "Can't open /dev/null: $OS_ERROR";
+    open my $readfd, '>', '/dev/null' or LOGDIE "Can't open /dev/null: $OS_ERROR";
+
+    # open3 doesn't accept lexically-managed filehandles :(
+    my $pid = eval { open3( $infd, $readfd, \*GZERR, $GZIP_CMD, $file ); };
+    if ( !$pid )
+    {
+        return $EVAL_ERROR;
+    }
+
+    my $errors = '';
+    my $errchunk;
+    while ( sysread GZERR, $errchunk, 1024 )
+    {
+        $errors .= $errchunk;
+    }
+    close GZERR or LOGDIE "Error closing gzip's error output: $OS_ERROR";
+    $errors = filespec_decode( $errors );
+    # Hopefully when sysread returns 0 (EOF), gzip finished
+
+    ( waitpid $pid, 0 ) > 0
+        or ERROR "unable to wait for gzip's dead process: $OS_ERROR";
+
+    if ( $CHILD_ERROR )
+    {
+        my $signal = $CHILD_ERROR & 127;
+        my $exitv  = $CHILD_ERROR >> 8;
+        return "gzip error: ${errors}gzip exited with code $exitv / signal $signal";
+    }
+
+    if ( $errors )
+    {
+        WARN "gzip: $errors";
+    }
+
+    return;
+}
+
+sub select_gzip_alternative
+{
+    if ( eval { require 'IO::Compress::Gzip'; } )
+    {
+        DEBUG "Selected IO::Compress:Gzip as the gzip compression method";
+        *gzip_file = *gzip_file_iocompress;
+    }
+    else
+    {
+        DEBUG "IO::Compress::Gzip inclusion returned: $EVAL_ERROR, falling back to gzip command";
+        if ( -x $GZIP_CMD )
+        {
+            DEBUG "Selected the external gzip command as the gzip compression method";
+            *gzip_file = *gzip_file_cmd;
+        }
+        else
+        {
+            ERROR "$GZIP_CMD not found";
+            LOGDIE "No suitable compression method found on this system";
+        }
+    }
+}
+# Call this at compile-time to pull IO::Compress::Gzip in the PAR package
+BEGIN { select_gzip_alternative; }
 
 sub read_file_metadata
 {
