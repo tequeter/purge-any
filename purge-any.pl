@@ -39,7 +39,7 @@ else
 }
 # More PAR support : datetime_now is called once at compile-time, see below
 
-our $VERSION = 1.013_002;
+our $VERSION = 1.013_003;
 my $DEFAULT_MIN_DEPTH = 1;
 my $DEFAULT_MAX_DEPTH = 1024;
 my $GZIP_CMD;
@@ -378,33 +378,27 @@ sub purge_fs_object
       && -d filespec_encode( $path ) )
     {
         DEBUG "Recursing in $path";
-        my @contents;
-        if ( !eval { @contents = directory_contents( $path ); 1 } )
+        local $depth_spec_ref->{depth} = $depth_spec_ref->{depth} + 1;
+
+        my $dirfh;
+        if ( !opendir $dirfh, filespec_encode( $path ) )
         {
-            ERROR "Unable to list the contents of directory $path: $EVAL_ERROR";
+            ERROR "Unable to list the contents of directory $path: $OS_ERROR";
             $results_ref->{errors}++;
             return;
         }
 
-        local $depth_spec_ref->{depth} = $depth_spec_ref->{depth} + 1;
-        foreach my $dir_entry ( @contents )
+        ENTRY: while ( my $dir_entry = readdir $dirfh )
         {
+            $dir_entry = filespec_decode( $dir_entry );
+            next ENTRY if $dir_entry =~ /^\.{1,2}$/;
+
             my $sub_path = File::Spec->catfile( $path, $dir_entry );
             purge_fs_object( $purge_ref, $results_ref, $dry_run, $sub_path, $depth_spec_ref );
         }
     }
 
     return;
-}
-
-sub directory_contents
-{
-    my ( $path ) = @_;
-
-    opendir my $dir, filespec_encode( $path ) or LOGDIE "opendir: $OS_ERROR";
-    my @contents = grep { !/^\.{1,2}$/ } map { filespec_decode( $_ ) } readdir $dir;
-
-    return @contents;
 }
 
 sub depth_matches
