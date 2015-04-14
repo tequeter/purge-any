@@ -39,8 +39,7 @@ comes with Perl:
 Source control
 ==============
 
-purge-any's history is kept around in Mercurial format
-(http://mercurial.selenic.com) in the ".hg" directory.
+purge-any's history is on svn://svn-infra/Infra/INF/src/purge-any/ .
 
 
 -Thomas Equeter, 2010-07-13.

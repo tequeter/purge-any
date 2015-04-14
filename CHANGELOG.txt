@@ -1,3 +1,15 @@
+purge-any (1.014)
+
+  * Made the IO::Compress::Gzip dependency optional on GNU platforms, for an
+    easier installation method on RHEL5.
+  * Improved error reporting on opendir
+  * Avoid an out of memory condition on large directories
+  * Detect TAB characters in the configuration file and treat them as fatal
+    errors.
+  * Updated documentation for installation on RHEL5 & RHEL6
+
+ -- Thomas Equeter <tequeter@users.noreply.github.com>  Tue, 14 Apr 2015
+
 purge-any (1.013)
 
   * Documented how to install the dependencies on various platforms.
