@@ -39,7 +39,7 @@ else
 }
 # More PAR support : datetime_now is called once at compile-time, see below
 
-our $VERSION = 1.013_003;
+our $VERSION = 1.013_004;
 my $DEFAULT_MIN_DEPTH = 1;
 my $DEFAULT_MAX_DEPTH = 1024;
 my $GZIP_CMD;
@@ -160,6 +160,7 @@ sub load_config_file
 
     open my $file_ref, '<', $file or LOGDIE "open $file: $OS_ERROR";
     my $config_text = do { local $/; readline $file_ref; };
+    check_for_tabs( $config_text );
     my $config_ref = Load( $config_text );
     if ( ref $config_ref eq 'HASH' )
     {
@@ -170,6 +171,23 @@ sub load_config_file
     {
         LOGDIE "Invalid $file contents";
     }
+}
+
+sub check_for_tabs
+{
+    my ( $config_text ) = @_;
+
+    my @lines = split /\n/, $config_text;
+    for ( my $i = 0; $i < @lines; ++$i )
+    {
+        if ( $lines[$i] =~ /\t/ )
+        {
+            my $lineno = $i + 1;
+            LOGDIE "There is a TAB character in the configuration file at line $lineno";
+        }
+    }
+
+    return;
 }
 
 sub get_profile
