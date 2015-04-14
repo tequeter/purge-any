@@ -38,7 +38,9 @@ touch( $now - $day, filespec_encode( catfile( $dir, "README.txt" ) ) );
 
 # Check that we can access those even before running purge-any, or the test is meaningless
 ok( -e filespec_encode( catfile( $dir, "README.txt" ) ),             'We can access the test files' ) or die;
-is( -M filespec_encode( catfile( $dir, "README.txt" ) ), 1,          'README.txt has mtime to -1 day' );
+my $readme_age_days = -M filespec_encode( catfile( $dir, "README.txt" ) );
+my $readme_age_secs = sprintf '%d', $readme_age_days * $day;
+ok( abs( $readme_age_secs - $day ) <= 1, 'README.txt has mtime to -1 day' );
 ok( -e filespec_encode( catfile( $dir, "README_$weird.txt" ) ),      'We can access the test files' ) or die;
 ok( -e filespec_encode( catfile( $dir, "README2_$weird.txt" ) ),     'We can access the test files' ) or die;
 ok( -e filespec_encode( catfile( $dir, "README2_$weird.txt.gz" ) ),  'We can access the test files' ) or die;
@@ -55,7 +57,7 @@ ok( !-e filespec_encode( catfile( $dir, "README.txt.gz.gz" ) ), qq{README.txt.gz
 SKIP: {
     my $stat_ref = File::stat::stat( catfile( $dir, 'README.txt.gz' ) );
     skip 'README.txt.gz did not get created', 3 if !$stat_ref;
-    is( $stat_ref->mtime(), $now - $day, 'README.txt.gz has the same mtime than the original' );
+    is( -M filespec_encode( catfile( $dir, 'README.txt.gz' ) ), $readme_age_days, 'README.txt.gz has the same mtime than the original' );
     skip 'Meaningless on MSWin32', 3 if $OSNAME eq 'MSWin32';
     is( $stat_ref->mode() & 07777, 0612, 'The file mode was replicated on the archive' );
     skip 'UID/GID cannot be tested if not running as root', 2 if $UID != 0;
