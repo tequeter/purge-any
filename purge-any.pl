@@ -39,7 +39,7 @@ else
 }
 # More PAR support : datetime_now is called once at compile-time, see below
 
-our $VERSION = 1.013_001;
+our $VERSION = 1.013_002;
 my $DEFAULT_MIN_DEPTH = 1;
 my $DEFAULT_MAX_DEPTH = 1024;
 my $GZIP_CMD;
@@ -136,7 +136,7 @@ sub find_config_file
     }
     else
     {
-        $logger_ref->logdie( "Could not find the configuration file in the current directory and -f was not specified" );
+        LOGDIE "Could not find the configuration file in the current directory and -f was not specified";
     }
 }
 
@@ -150,7 +150,7 @@ sub find_config_name
     }
     else
     {
-        $logger_ref->logdie( "Could not determine computer name using external command 'hostname'" );
+        LOGDIE "Could not determine computer name using external command 'hostname'";
     }
 }
 
@@ -158,7 +158,7 @@ sub load_config_file
 {
     my ( $file ) = @_;
 
-    open my $file_ref, '<', $file or $logger_ref->logdie( "open $file: $OS_ERROR" );
+    open my $file_ref, '<', $file or LOGDIE "open $file: $OS_ERROR";
     my $config_text = do { local $/; readline $file_ref; };
     my $config_ref = Load( $config_text );
     if ( ref $config_ref eq 'HASH' )
@@ -168,7 +168,7 @@ sub load_config_file
     }
     else
     {
-        $logger_ref->logdie( "Invalid $file contents" );
+        LOGDIE "Invalid $file contents";
     }
 }
 
@@ -184,12 +184,12 @@ sub get_profile
         }
         else
         {
-            $logger_ref->logdie( "Invalid configuration profile '$profile_name' contents" );
+            LOGDIE "Invalid configuration profile '$profile_name' contents";
         }
     }
     else
     {
-        $logger_ref->logdie( "Could not find the profile '$profile_name' in the config file" );
+        LOGDIE "Could not find the profile '$profile_name' in the config file";
     }
 }
 
@@ -235,11 +235,11 @@ sub check_profile
 
     if ( ref $profile_ref ne 'HASH' )
     {
-        $logger_ref->logdie( "Invalid profile data (expected a hash)" );
+        LOGDIE "Invalid profile data (expected a hash)";
     }
     if ( !exists $profile_ref->{purges} || ref $profile_ref->{purges} ne 'ARRAY' )
     {
-        $logger_ref->logdie( "Invalid profile/purges data (expected an array containing an array" );
+        LOGDIE "Invalid profile/purges data (expected an array containing an array";
     }
         
     my $purge_index = 1;
@@ -248,7 +248,7 @@ sub check_profile
         ++$purge_index;
         if ( ref $purge_ref ne 'HASH' )
         {
-            $logger_ref->logdie( "Invalid profile/purges[$purge_index] data (expected a hash)" );
+            LOGDIE "Invalid profile/purges[$purge_index] data (expected a hash)";
         }
 
         $purge_ref->{'predicates'} ||= [];
@@ -256,11 +256,11 @@ sub check_profile
         {
             if ( !exists $purge_ref->{$key} )
             {
-                $logger_ref->logdie( "Missing required key $key in profile/purges[$purge_index]" );
+                LOGDIE "Missing required key $key in profile/purges[$purge_index]";
             }
             if ( ( $key eq 'paths' || $key eq 'predicates' ) && ref $purge_ref->{$key} ne 'ARRAY' )
             {
-                $logger_ref->logdie( "Invalid profile/purges[$purge_index]/$key data (expected an array)" );
+                LOGDIE "Invalid profile/purges[$purge_index]/$key data (expected an array)";
             }
             if ( $key eq 'predicates' )
             {
@@ -270,24 +270,24 @@ sub check_profile
                     ++$pred_index;
                     if ( ref $pred_ref ne 'HASH' )
                     {
-                        $logger_ref->logdie( "Invalid profile/purges[$purge_index]/predicates[$pred_index]" );
+                        LOGDIE "Invalid profile/purges[$purge_index]/predicates[$pred_index]";
                     }
                     
                     keys %$pred_ref; # Reset for "each"
                     my ( $pred_name, $pred_value ) = each %$pred_ref;
                     if ( !defined $pred_name || !defined $pred_value )
                     {
-                        $logger_ref->logdie( "Incomplete predicate profile/purges[$purge_index]/predicates[$pred_index]" );
+                        LOGDIE "Incomplete predicate profile/purges[$purge_index]/predicates[$pred_index]";
                     }
 
                     if ( $pred_name eq 'empty' && $pred_value ne 'yes' )
                     {
-                        $logger_ref->logdie( "Invalid value for 'empty' predicate profile/purges[$purge_index]/predicates[$pred_index]" );
+                        LOGDIE "Invalid value for 'empty' predicate profile/purges[$purge_index]/predicates[$pred_index]";
                     }
 
                     if ( $pred_name eq 'mtime' && $pred_value !~ /^[+-]?\d+$/ )
                     {
-                        $logger_ref->logdie( "Invalid numeric predicate format profile/purges[$purge_index]/predicates[$pred_index]" );
+                        LOGDIE "Invalid numeric predicate format profile/purges[$purge_index]/predicates[$pred_index]";
                     }
                 }
             }
@@ -295,15 +295,15 @@ sub check_profile
 
         if ( exists $purge_ref->{mindepth} && ( !defined $purge_ref->{mindepth} || $purge_ref->{mindepth} !~ /^\d+$/ ) )
         {
-            $logger_ref->logdie( "Invalid mindepth (must be a number) at profile/purges[$purge_index]" );
+            LOGDIE "Invalid mindepth (must be a number) at profile/purges[$purge_index]";
         }
         if ( exists $purge_ref->{maxdepth} && ( !defined $purge_ref->{maxdepth} || $purge_ref->{maxdepth} !~ /^\d+$/ ) )
         {
-            $logger_ref->logdie( "Invalid maxdepth (must be a number) at profile/purges[$purge_index]" );
+            LOGDIE "Invalid maxdepth (must be a number) at profile/purges[$purge_index]";
         }
         if ( $purge_ref->{action} eq 'rename_with_date' && ( !exists $purge_ref->{rename_suffix} || ref $purge_ref->{rename_suffix} ) )
         {
-            $logger_ref->logdie( "Missing or invalid rename_suffix specification at profile/purges[$purge_index]" );
+            LOGDIE "Missing or invalid rename_suffix specification at profile/purges[$purge_index]";
         }
     }
 
@@ -401,7 +401,7 @@ sub directory_contents
 {
     my ( $path ) = @_;
 
-    opendir my $dir, filespec_encode( $path ) or die $OS_ERROR;
+    opendir my $dir, filespec_encode( $path ) or LOGDIE "opendir: $OS_ERROR";
     my @contents = grep { !/^\.{1,2}$/ } map { filespec_decode( $_ ) } readdir $dir;
 
     return @contents;
