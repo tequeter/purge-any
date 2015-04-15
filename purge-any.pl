@@ -1668,7 +1668,7 @@ C</usr/bin/gzip>.
 
 =item *
 
-On Windows platforms: C<Win32::Codepage::Simple> and
+On MS Windows platforms: C<Win32::Codepage::Simple> and
 C<DateTime::TimeZone::Local::Win32>.
 
 =back
@@ -1696,12 +1696,25 @@ Install the RPMs found in rhel5/ or rhel6/ respectively:
 Since purge-any version 1.014, these RPMs include purge-any itself (it will be
 installed in the PATH, C</usr/bin/purge-any>).
 
+
 =head2 Installation on MS Windows
 
 For MS Windows, I recommend to use a PAR-packaged C<.exe>.
 
 It can be created by running the C<create_exe.sh> script on a workstation with
-all the prerequisites installed through ActivePerl.
+all the prerequisites installed through ActivePerl. You'll need the following
+extra dependency: C<PAR::Packer>.
+
+If you get the error C<Perl lib version (5.a.b) doesn't match executable
+'perl.exe' version (5.a.c)>, the C<PAR::Packer> package provided by ActivePerl
+was not compiled exactly for their Perl binary version (for example, they
+compiled the package with Perl 5.20.1 but you downloaded ActivePerl 5.20.2).
+
+The fix is to uninstall C<PAR::Packer>, install the C<mingw> and C<dmake>
+packages from PPM, and recompile it yourself:
+
+  set PATH=C:/Perl/site/lib/auto/MinGW/bin;%PATH%
+  cpan install PAR::Packer
 
 =head2 Installation on AIX 5.3
 
@@ -1719,6 +1732,7 @@ letters), your locale must be UTF-8-based. For example, run this command before
 calling C<purge-any.pl>:
 
   export LC_CTYPE=FR_FR.UTF-8
+
 
 =head2 Creating the AIX 5.3 binaries from the sources
 
