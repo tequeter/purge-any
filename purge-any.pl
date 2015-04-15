@@ -30,7 +30,8 @@ use File::stat qw();
 use File::Copy qw();
 if ( $OSNAME eq 'MSWin32' )
 {
-    require Win32::Codepage;
+    require Win32::Codepage::Simple;
+    require DateTime::TimeZone::Local::Win32;
 }
 else
 {
@@ -38,7 +39,7 @@ else
 }
 # More PAR support : datetime_now is called once at compile-time, see below
 
-our $VERSION = 1.013_005;
+our $VERSION = 1.013_006;
 my $DEFAULT_MIN_DEPTH = 1;
 my $DEFAULT_MAX_DEPTH = 1024;
 my $GZIP_CMD;
@@ -860,7 +861,7 @@ sub gzip_file_cmd
 
 sub select_gzip_alternative
 {
-    if ( eval { require 'IO::Compress::Gzip'; } )
+    if ( eval { require IO::Compress::Gzip; } )
     {
         DEBUG "Selected IO::Compress:Gzip as the gzip compression method";
         *gzip_file = *gzip_file_iocompress;
@@ -980,7 +981,7 @@ sub get_locale_encoding
     my $encoding;
     if ( $OSNAME eq 'MSWin32' )
     {
-        $encoding = Win32::Codepage::get_encoding();
+        $encoding = get_win32_encoding();
         INFO "Assuming the system encoding to be $encoding (from Win32's codepage)";
     }
     elsif ( defined &encoding::_get_locale_encoding )
@@ -1006,6 +1007,15 @@ sub get_locale_encoding
     }
 
     return $encoding;
+}
+
+sub get_win32_encoding
+{
+    # Emulates what the defunct Win32::Codepage did
+    my $codepage = Win32::Codepage::Simple::get_acp()
+        || Win32::Codepage::Simple::get_oemcp();
+    return unless $codepage && $codepage =~ m/^[0-9a-fA-F]+$/s;
+    return "cp".lc($codepage);
 }
 
 # Converts an internal Perl string to a byte string compatible with this
@@ -1636,24 +1646,30 @@ B<paths> are not purged unless it is explicitely set to 0.
 
 =item *
 
-perl 5.8.8 or higher
+Perl 5.8.8 or higher.
 
 =item *
 
-C<Log::Log4perl>
+C<Log::Log4perl>.
 
 =item *
 
-C<YAML::XS> (also known as YAML::LibYAML, libyaml-libyaml-perl, ...)
+C<YAML::XS> (also known as YAML::LibYAML, libyaml-libyaml-perl, ...).
 
 =item *
 
-C<DateTime>
+C<DateTime> (and C<DateTime::Locale>, C<DateTime::TimeZone> when packaged
+separately).
 
 =item *
 
 C<IO::Compress::Gzip> version 2 or higher, or GNU gzip(1) installed as
 C</usr/bin/gzip>.
+
+=item *
+
+On Windows platforms: C<Win32::Codepage::Simple> and
+C<DateTime::TimeZone::Local::Win32>.
 
 =back
 

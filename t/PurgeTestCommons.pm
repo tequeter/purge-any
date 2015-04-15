@@ -11,7 +11,7 @@ use Memoize;
 use Encode;
 if ( $OSNAME eq 'MSWin32' )
 {
-    require Win32::Codepage;
+    require Win32::Codepage::Simple;
 }
 else
 {
@@ -94,13 +94,22 @@ sub quote_win32_path
     return $path;
 }
 
+sub get_win32_encoding
+{
+    # Emulates what the defunct Win32::Codepage did
+    my $codepage = Win32::Codepage::Simple::get_acp()
+        || Win32::Codepage::Simple::get_oemcp();
+    return unless $codepage && $codepage =~ m/^[0-9a-fA-F]+$/s;
+    return "cp".lc($codepage);
+}
+
 memoize( 'get_locale_encoding' );
 sub get_locale_encoding
 {
     my $encoding;
     if ( $OSNAME eq 'MSWin32' )
     {
-        $encoding = Win32::Codepage::get_encoding();
+        $encoding = get_win32_encoding();
     }
     elsif ( defined &encoding::_get_locale_encoding )
     {
