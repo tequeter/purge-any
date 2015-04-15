@@ -1074,7 +1074,7 @@ one per host, and can therefore be replicated safely accross all servers.
 
 =head1 VERSION
 
-This documentation refers to purge-any version 1.013.
+This documentation refers to purge-any version 1.014.
 
 =head1 USAGE
 
@@ -1646,7 +1646,7 @@ B<paths> are not purged unless it is explicitely set to 0.
 
 =item *
 
-Perl 5.8.8 or higher.
+Perl 5.8 or higher.
 
 =item *
 
@@ -1691,7 +1691,7 @@ Then use the purge-any.pl script.
 
 Install the RPMs found in rhel5/ or rhel6/ respectively:
 
-  yum localinstall rhelX/*{noarch,x86_64}.rpm
+  yum --nogpgcheck localinstall rhelX/*{noarch,x86_64}.rpm
 
 Since purge-any version 1.014, these RPMs include purge-any itself (it will be
 installed in the PATH, C</usr/bin/purge-any>).
@@ -1701,7 +1701,7 @@ installed in the PATH, C</usr/bin/purge-any>).
 
 For MS Windows, I recommend to use a PAR-packaged C<.exe>.
 
-It can be created by running the C<create_exe.sh> script on a workstation with
+It can be created by running the C<create_exe.bat> script on a workstation with
 all the prerequisites installed through ActivePerl. You'll need the following
 extra dependency: C<PAR::Packer>.
 
